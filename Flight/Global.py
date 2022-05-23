@@ -7,3 +7,7 @@ mainheight = 1000  # Change this to alter the main chute deploy height
 droguedeploytime = 10  # Change this to alter the drogue deploy time
 maindeploytime = 10  # Change this to alter the main chute deploy time
 cddown = 0.4
+start_mass = 28 #kg
+end_mass = 18.979 #kg
+
+angle_attack = 1

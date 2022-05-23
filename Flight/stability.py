@@ -43,7 +43,7 @@ def X_N(nose, h):
   X_N = h/2 + nose #Adds half the height to the nosecone length
   return X_N
 
-def X_f(c, s, A_fin, beta):
+def X_sf(c, s, A_fin, beta):
   #Method to find the new COP for the fins in the supersonic regime
   AR = 2*(s*0.01)**2 / A_fin #Calculates the fin aspect ratio
 

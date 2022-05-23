@@ -8,7 +8,7 @@ from matplotlib.widgets import Slider
 Nosecone_length = 60
 Body_dia = 13
 Body_len = 200
-COM = 189
+CoM = 189
 
 #Lengths in mm
 Fin_basechord = 36
@@ -21,6 +21,7 @@ MAC_base = 27.282e-2
 
 Roughness =3e-6
 fineness = total_length/(Body_dia*10**(-3))
+N = 4
 
 class Fins:
   # Creates  a class fo fin objects which stores attributes
@@ -50,7 +51,7 @@ class Fins:
   
   def K(self):
     # Finds the aero
-    K = 1 + (14)/(self.s + 14)
+    K = 1 + (13)/(self.s + 13)
     return K
 
 class Body:
