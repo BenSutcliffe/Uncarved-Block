@@ -15,9 +15,8 @@ Fin_basechord = 36
 Fin_length = 20
 Fin_topchord = 16
 Fin_thick = 9
-Leadingangle = 26.6
 total_length = (Body_len+Nosecone_length)*10**(-2)
-MAC_base = 27.282e-2
+MAC_base = 27.282
 
 Roughness =3e-6
 fineness = total_length/(Body_dia*10**(-3))
@@ -26,13 +25,14 @@ N = 4
 class Fins:
   # Creates  a class fo fin objects which stores attributes
   "See twinned LaTeX document to see what each dimension refers to"
-  def __init__(self, C_r, s, C_t, X_t, gamma=0):
+  def __init__(self, C_r, s, C_t, X_t, Mac_f, gamma=0):
     # Initailises key parameters about the fin which are known geometric inputs, see LaTeX document to see which each refers to
     self.C_r = C_r
     self.s = s
     self.C_t = C_t
     self.X_t = X_t
     self.gamma = gamma
+    self.Mac_f = Mac_f
 
   def y(self):
       # This function finds the spanwise position of the Mean Aerodynamic Chord based on the geometric information
@@ -53,6 +53,15 @@ class Fins:
     # Finds the aero
     K = 1 + (13)/(self.s + 13)
     return K
+  
+  def leading_angle(self):
+    #Finds leading fin angle
+    le_angle = np.arctan((self.C_r - self.C_t)/(2*self.s))
+    return le_angle
+  
+  def MAC_si(self):
+    norm_mac = self.Mac_f * (10**(-2))
+    return norm_mac
 
 class Body:
   #Initalises a class for the rocket body
@@ -82,6 +91,6 @@ class Nosecone:
     X_f = 0.446 * self.L
     return X_f
 
-Base = Fins(Fin_basechord, Fin_length, Fin_topchord, Fin_thick)
+Base = Fins(Fin_basechord, Fin_length, Fin_topchord, Fin_thick, MAC_base)
 Bodyone = Body(Body_dia, Body_len, Nosecone_length)
 Cone = Nosecone(Nosecone_length)

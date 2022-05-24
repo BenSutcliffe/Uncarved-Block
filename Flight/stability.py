@@ -5,19 +5,6 @@ def CNalphaN_subs(n, s, A_ref, A_fin, Beta, gamma):
   CNalphaN = (n/2) * (2 * np.pi * (((s*0.01)**2) /A_ref))/(1 + np.sqrt(1 + ((Beta * (s*0.01)**2)/(A_fin * np.cos(gamma)))**2)) #From the open rocket documentation
   return CNalphaN
 
-def CNalphaN_trans(n, A_ref, A_fin, Beta, alpha):
-  #New method to find the normal force coefficient for the non-subsonic regime
-  M_value = np.sqrt(np.abs(1-(Beta)**2))
-
-  #Finds the values for the three velocity dependent coefficients
-  K_1 = 2/Beta 
-  K_2 = (((2.4*M_value**4)-(4*Beta**2))/(4*Beta**4))
-  K_3 = (((2.4*M_value**8)-(11.88*M_value**6)+(24*M_value**4)+(8))/(6*Beta**7))
-
-  #Finds the values for the force coefficient using the above coefficients and angle of attack
-  CNalphaN = (n/2) * (A_fin/A_ref) * ((K_1) + (K_2 * alpha * np.pi/180) + (K_3 * (alpha * np.pi/180)**2)) 
-  return CNalphaN
-
 def CNalphaN_super(n, A_ref, A_fin, Beta, alpha):
   #New method to find the normal force coefficient for the non-subsonic regime
   M_value = np.sqrt(np.abs(1-(Beta)**2))
@@ -30,8 +17,6 @@ def CNalphaN_super(n, A_ref, A_fin, Beta, alpha):
   #Finds the values for the force coefficient using the above coefficients and angle of attack
   CNalphaN = (n/2) * (A_fin/A_ref) * ((K_1) + (K_2 * alpha * np.pi/180) + (K_3 * (alpha * np.pi/180)**2)) 
   return CNalphaN
-
-
 
 def C_N(A_plan, A_ref, alpha, K=1.1):
   #Normal force coefficient of the rocket body
