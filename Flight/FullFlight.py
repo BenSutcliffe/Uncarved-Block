@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from Drag import *
 import Classes
-import Thrust
+from Thrust import *
 import Global
 from Stability import X_sf, X_N, C_N, CNalphaN_subs, CNalphaN_super
 
@@ -15,7 +15,7 @@ Rough = Classes.Roughness
 N_f = Classes.N
 Body = Classes.Bodyone
 n_cone = Classes.Cone
-alpha_f = Global.angle_attack
+alpha_f = 5 #Global.angle_attack
 fineness = Classes.fineness
 
 dt = 0.0001  # Change this to alter the timestep
@@ -28,7 +28,7 @@ densities = [1.225, 1.112, 1.007, 0.9093, 0.8194, 0.7364, 0.6601, 0.5900, 0.5258
 altitudes = [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000, 25000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 120000, 130000, 140000, 150000]
 time = []
 
-burntime = 3.6
+burntime = 4.53
 for i in range(0, iterations + 100):
   time.append(dt * i)
 
@@ -43,8 +43,8 @@ dynamic_pressure = np.zeros(iterations + 100)
 mass = np.zeros(iterations + 100)
 calibre = np.zeros(iterations + 100)
 
-height[0] = 0 #20000
-velocity[0] = 0 #824
+height[0] = 0 #18000
+velocity[0] = 0 #854
 mass[0] = Global.start_mass
 
 fin_drag2 = []
@@ -52,7 +52,7 @@ fin_drag2 = []
 with alive_bar(iterations) as bar:
   for i in range(0, iterations):
     bar()
-    if height[i] >= 0 and height[i]<150000 and time[i] < 15:
+    if height[i] >= 0 and height[i]<150000 and time[i] < 50:
 
       for j in range(0, len(altitudes)):
         if height[i] >= altitudes[j] and height[i] < altitudes[j+1]:
@@ -99,7 +99,7 @@ with alive_bar(iterations) as bar:
         #Finds the overall centre of pressure as a weighted mean of component COP and force coefficients, as from OpenRocket Documentation
         X = ((X_1 * C_1) + (X_3 * C_3) + (X_4 * C_4))/(C_1 + C_3 + C_4)
 
-        fin_drag2.append(C_3*alpha_f*(np.pi/180)* ((velocity[i]) ** 2) * 0.5 * density * Body.Arearef())
+        fin_drag2.append(CNalpha*alpha_f*(np.pi/180)* ((velocity[i]) ** 2) * 0.5 * density * Body.Arearef())
 
         Cal = (X - Classes.CoM)/Body.d
         calibre[i] = Cal #Stores overall COP
@@ -118,7 +118,7 @@ with alive_bar(iterations) as bar:
           drag[i] = -1 * Global.cdmain * ((velocity[i]) ** 2) * 0.5 * density * (maincount/(Global.maindeploytime/dt)) * Global.amain
 
       if float(dt*i) <= burntime:
-        thrust = Thrust.Thrust_curve(time[i])
+        thrust = Thrust_curve_8088(time[i])
         mass[i+1] = mass[i] - ((Global.start_mass-Global.end_mass)*dt/burntime)
         acceleration[i+1] = (float(thrust) - float(drag[i]))/float(mass[i]) - 9.81  # Gravity
       else:

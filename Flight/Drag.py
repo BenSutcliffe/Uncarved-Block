@@ -35,15 +35,19 @@ def friction_vel(Coeff_friction, Machno, A_ref, fineness, A_body_wet, fin_thickn
 
 
 def Body_pressure_drag(Machno, maximumdiameter, noseconelen):
+    eta = np.arctan(maximumdiameter/(2*noseconelen))
     Coeff_body_pressure = 0
+    Coeff_body_pressure_subs = 0.8*(np.sin(eta))**2
+    Coeff_body_pressure_M1 = np.sin(eta)
+    Coeff_body_pressure_super = (2.1 * ((np.sin(eta))**2)) + ((np.sin(eta))/(2 * np.sqrt((Machno**2) - 1)))
     if Machno < 0.8:
-        Coeff_body_pressure = 0
-    elif Machno < 1.3 and Machno >= 0.8:
-        eta = np.arctan(maximumdiameter/(2*noseconelen))
-        Coeff_body_pressure = np.sin(eta)
+        Coeff_body_pressure = Coeff_body_pressure_subs
+    elif Machno >= 0.8 and Machno < 1:
+        Coeff_body_pressure = Coeff_body_pressure_subs + ((Coeff_body_pressure_M1-Coeff_body_pressure_subs)*(Machno-0.8)/0.2)
+    elif Machno >= 1 and Machno <= 1.3:
+        Coeff_body_pressure = Coeff_body_pressure_M1 + ((Coeff_body_pressure_super-Coeff_body_pressure_M1)*(Machno-1)/0.3)
     elif Machno >= 1.3:
-        eta = np.arctan(maximumdiameter/(2*noseconelen))
-        Coeff_body_pressure = (2.1 * ((np.sin(eta))**2)) + ((np.sin(eta))/(2 * np.sqrt((Machno**2) - 1)))
+        Coeff_body_pressure = Coeff_body_pressure_super
     return Coeff_body_pressure
 
 def fin_pressure_drag(Machno, Leadingangle_base):
