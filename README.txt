@@ -1,1 +1,1 @@
-The code is supplied as is without any license.
+Aquila modelling for CUSF Spaceflight.

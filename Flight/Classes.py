@@ -1,3 +1,4 @@
+from operator import length_hint
 import numpy as np
 import time
 import matplotlib.pyplot as plt
@@ -8,9 +9,14 @@ from matplotlib.widgets import Slider
 Nosecone_length = 60
 Body_dia = 13
 Body_len = 200
-CoM = 189
+CoM = 189 #for Aquila
+CoM2 = 500 #for total
 
-#Lengths in mm
+#For Panthera
+Panthera_dia = 60
+Transition_length = 5
+
+#Lengths in cm/mm
 Fin_basechord = 36
 Fin_length = 20
 Fin_topchord = 16
@@ -39,6 +45,13 @@ class Fins:
       y = (self.s /3)*((self.C_r + (2*self.C_t))/(self.C_r + self.C_t)) #As found in the OpenRocket documentation
       return y
 
+  def angle_skew(self):
+    if self.gamma == 0:
+      angle = self.gamma
+    else:
+      angle = np.arctan(0.5*(self.C_r - self.C_t)/self.s)
+    return angle
+
   def X_f(self):
     # Locates the position of the fin about itself in the subsonic regime 
       X_f = (self.X_t /3)*((self.C_r + (2*self.C_t))/(self.C_r + self.C_t)) + (1/6 * (((self.C_r)**2 + (self.C_t)**2 + (self.C_r * self.C_t))/(self.C_r + self.C_t))) #As found in the OpenRocket documentation
@@ -62,6 +75,23 @@ class Fins:
   def MAC_si(self):
     norm_mac = self.Mac_f * (10**(-2))
     return norm_mac
+
+class Boattail:
+  #Initalises a class for the transition
+  def __init__(self, start_d, end_d, length):
+    self.start_r = start_d #Start dia
+    self.end_r = end_d #End Dia
+    self.length = length # Length
+
+  def CN_tr(self):
+    CN_alpha_t = 2*np.pi*(self.end_r**2 - self.start_r**2)/(np.pi*self.end_r**2)
+    return CN_alpha_t
+
+  def X_tr(self):
+    X_s = 0.5*self.length
+    return X_s
+
+
 
 class Body:
   #Initalises a class for the rocket body
@@ -88,9 +118,10 @@ class Nosecone:
     
   def X_f(self):
     #Function to find the centre of pressure for a nosecone
-    X_f = 0.446 * self.L
+    X_f = 0.666 * self.L
     return X_f
 
 Base = Fins(Fin_basechord, Fin_length, Fin_topchord, Fin_thick, MAC_base)
 Bodyone = Body(Body_dia, Body_len, Nosecone_length)
 Cone = Nosecone(Nosecone_length)
+Transition = Boattail(Body_dia, Panthera_dia, Transition_length)

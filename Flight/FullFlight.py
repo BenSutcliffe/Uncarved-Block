@@ -43,8 +43,8 @@ dynamic_pressure = np.zeros(iterations + 100)
 mass = np.zeros(iterations + 100)
 calibre = np.zeros(iterations + 100)
 
-height[0] = 0 #18000
-velocity[0] = 0 #854
+height[0] = 20000 #18000
+velocity[0] = 800 #854
 mass[0] = Global.start_mass
 
 fin_drag2 = []
@@ -52,7 +52,7 @@ fin_drag2 = []
 with alive_bar(iterations) as bar:
   for i in range(0, iterations):
     bar()
-    if height[i] >= 0 and height[i]<150000 and time[i] < 50:
+    if height[i] >= 0 and height[i]<150000 and time[i] < 250:
 
       for j in range(0, len(altitudes)):
         if height[i] >= altitudes[j] and height[i] < altitudes[j+1]:
@@ -81,9 +81,18 @@ with alive_bar(iterations) as bar:
         drag[i] = Coefficient_of_drag * ((velocity[i]) ** 2) * 0.5 * density * Body.Arearef()
 
         fin_pos = (length_tot*10**(2)) - Base_f.C_r
-        if Machno <= 1.2:
-          CNalpha = CNalphaN_subs(N_f, Base_f.s, Body.Arearef(), Base_f.area(), beta, Base_f.gamma)
+        if Machno <= 0.8:
+          CNalpha = CNalphaN_subs(N_f, Base_f.s, Body.Arearef(), Base_f.area(), beta, Base_f.angle_skew())
           X_1 = (Base_f.X_f() + fin_pos) # Finds the centre of pressure for finset relative to the top of the rocket
+        elif Machno < 1.4:
+          CNalphasubs = CNalphaN_subs(N_f, Base_f.s, Body.Arearef(), Base_f.area(), 0.6, Base_f.angle_skew())
+          CNalphasuper = CNalphaN_super(N_f, Body.Arearef(), Base_f.area(), 0.97979, alpha_f)
+          CNalpha = CNalphasubs + ((Machno - 0.8)/0.6) * (CNalphasuper - CNalphasubs)
+
+          X_1subs = (Base_f.X_f() + fin_pos)
+          X_1super = (X_sf(Base_f.Mac_f, Base_f.s, Base_f.area(), 0.97979) + fin_pos)
+          X_1 = X_1subs + ((Machno - 0.8)/0.6) * (X_1super - X_1subs)
+
         else:
           CNalpha = CNalphaN_super(N_f, Body.Arearef(), Base_f.area(), beta, alpha_f)
           X_1 = (X_sf(Base_f.Mac_f, Base_f.s, Base_f.area(), beta) + fin_pos)
@@ -118,15 +127,15 @@ with alive_bar(iterations) as bar:
           drag[i] = -1 * Global.cdmain * ((velocity[i]) ** 2) * 0.5 * density * (maincount/(Global.maindeploytime/dt)) * Global.amain
 
       if float(dt*i) <= burntime:
-        thrust = Thrust_curve_8088(time[i])
+        thrust = Thrust_curve_N5800(time[i])
         mass[i+1] = mass[i] - ((Global.start_mass-Global.end_mass)*dt/burntime)
         acceleration[i+1] = (float(thrust) - float(drag[i]))/float(mass[i]) - 9.81  # Gravity
       else:
           acceleration[i + 1] = (float(0) - float(drag[i]))/Global.end_mass - 9.81
 
       velocity[i+1] = float(velocity[i]) + float(acceleration[i]) * dt
-      height[i+1] = float(height[i]) + float(velocity[i]) * dt
-      dynamic_pressure[i+1] = density * (float(velocity[i]**2))
+      height[i+1] = float(height[i]) + float(velocity[i+1]) * dt
+      dynamic_pressure[i+1] = 0.5* density * (float(velocity[i]**2))
       #print(time[i], height[i], velocity[i], drag[i], mass[i])
 
 maxheight = np.sort(height)

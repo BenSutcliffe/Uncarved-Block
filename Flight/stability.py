@@ -2,7 +2,7 @@ import numpy as np
 
 def CNalphaN_subs(n, s, A_ref, A_fin, Beta, gamma):
   #This finds the normal force coefficient for a given fin
-  CNalphaN = (n/2) * (2 * np.pi * (((s*0.01)**2) /A_ref))/(1 + np.sqrt(1 + ((Beta * (s*0.01)**2)/(A_fin * np.cos(gamma)))**2)) #From the open rocket documentation
+  CNalphaN = (n/2) * (2 * np.pi) * (((s*0.01)**2) /A_ref)/(1 + np.sqrt(1 + ((Beta * (s*0.01)**2)/(A_fin * np.cos(gamma)))**2)) #From the open rocket documentation
   return CNalphaN
 
 def CNalphaN_super(n, A_ref, A_fin, Beta, alpha):
