@@ -10,7 +10,7 @@ Nosecone_length = 60
 Body_dia = 13
 Body_len = 200
 CoM = 189 #for Aquila
-CoM2 = 500 #for total
+CoM2 = 494 #for total
 
 #For Panthera
 Panthera_dia = 60
@@ -31,7 +31,7 @@ N = 4
 class Fins:
   # Creates  a class fo fin objects which stores attributes
   "See twinned LaTeX document to see what each dimension refers to"
-  def __init__(self, C_r, s, C_t, X_t, Mac_f, gamma=0):
+  def __init__(self, C_r, s, C_t, X_t, Mac_f, b_radius, gamma=0):
     # Initailises key parameters about the fin which are known geometric inputs, see LaTeX document to see which each refers to
     self.C_r = C_r
     self.s = s
@@ -39,6 +39,7 @@ class Fins:
     self.X_t = X_t
     self.gamma = gamma
     self.Mac_f = Mac_f
+    self.body_radius = b_radius
 
   def y(self):
       # This function finds the spanwise position of the Mean Aerodynamic Chord based on the geometric information
@@ -64,7 +65,7 @@ class Fins:
   
   def K(self):
     # Finds the aero
-    K = 1 + (13)/(self.s + 13)
+    K = 1 + (0.5*self.body_radius)/(self.s + (0.5*self.body_radius))
     return K
   
   def leading_angle(self):
@@ -115,13 +116,14 @@ class Nosecone:
   def __init__(self, L):
      self.C = [2, 2.05, 2.09, 2.14, 2.19, 2.23, 2.28, 2.32, 2.37, 2.41, 2.45, 2.5, 2.54, 2.58, 2.62, 2.66] #Describes heow nosecone normal coefficient changes with angle of attack
      self.L = L
+     self.CombinedC = 0.094
     
   def X_f(self):
     #Function to find the centre of pressure for a nosecone
     X_f = 0.666 * self.L
     return X_f
 
-Base = Fins(Fin_basechord, Fin_length, Fin_topchord, Fin_thick, MAC_base)
+Base = Fins(Fin_basechord, Fin_length, Fin_topchord, Fin_thick, MAC_base, Body_dia)
 Bodyone = Body(Body_dia, Body_len, Nosecone_length)
 Cone = Nosecone(Nosecone_length)
 Transition = Boattail(Body_dia, Panthera_dia, Transition_length)
