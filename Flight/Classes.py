@@ -21,6 +21,7 @@ Fin_basechord = 36
 Fin_length = 20
 Fin_topchord = 16
 Fin_thick = 9
+Fin_Xt = 10
 total_length = (Body_len+Nosecone_length)*10**(-2)
 MAC_base = 27.282
 
@@ -117,7 +118,7 @@ class Nosecone:
     X_f = 0.666 * self.L
     return X_f
 
-Base = Fins(Fin_basechord, Fin_length, Fin_topchord, Fin_thick, Body_dia)
+Base = Fins(Fin_basechord, Fin_length, Fin_topchord, Fin_Xt, Body_dia)
 Bodyone = Body(Body_dia, Body_len, Nosecone_length)
 Cone = Nosecone(Nosecone_length)
 Transition = Boattail(Body_dia, Panthera_dia, Transition_length)

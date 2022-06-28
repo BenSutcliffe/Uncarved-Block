@@ -26,11 +26,11 @@ def Griffin_stability(Machno, Aquila_length, Aquila_f, n_cone, Aquila_Body, Pant
 
     if Machno <= 0.8:
         CNalpha_a = CNalphaN_subs(N_f, Aquila_f.s, Panthera_body.Arearef(), Aquila_f.area(), beta, Aquila_f.angle_skew())
-        X_1_a = (Aquila_f.X_f() + fin_pos_Aquila + MAC_x(Aquila_f, c_LE)) # Finds the centre of pressure for finset relative to the top of the rocket
+        X_1_a = (Aquila_f.X_f() + fin_pos_Aquila) # Finds the centre of pressure for finset relative to the top of the rocket
 
         CNalpha_f = CNalphaN_subs(N_f, Panthera_f.s, Panthera_body.Arearef(), Panthera_f.area(), beta, Panthera_f.angle_skew())
-        X_1_f = (Panthera_f.X_f() + fin_pos_Panthera + MAC_x(Panthera_f, c_LE)) # Finds the centre of pressure for finset relative to the top of the rocket
-
+        X_1_f = (Panthera_f.X_f() + fin_pos_Panthera) # Finds the centre of pressure for finset relative to the top of the rocket
+        
     elif Machno < 2:
         CNalphasubs_a = CNalphaN_subs(N_f, Aquila_f.s, Panthera_body.Arearef(), Aquila_f.area(), 0.6, Aquila_f.angle_skew())
         CNalphasuper_a = CNalphaN_super(N_f, Panthera_body.Arearef(), Aquila_f.area(), 1.732, alpha_f)
@@ -71,13 +71,29 @@ def Griffin_stability(Machno, Aquila_length, Aquila_f, n_cone, Aquila_Body, Pant
 
     #Finds the overall centre of pressure as a weighted mean of component COP and force coefficients, as from OpenRocket Documentation
     X = ((X_1_a * C_1_a) + (X_3_a * C_3_a) + (X_4_a * C_4_a) + (C_2_g*X_2_g) + (X_3_f * C_3_f)+ (X_1_f * C_1_f))/(C_1_a + C_3_a + C_4_a + C_3_f + C_1_f + C_2_g)
+    
     Cal = (X - COM)/Panthera_body.d
     return Cal #Stores overall COP
 
 def COM_f(mass, mean_length, fuel_m = 378.6, COM_0 = 476):
+    #Find approx COM based on finless model of OpenRocket
     COM = ((mass*mean_length) + (fuel_m * COM_0))/(mass+fuel_m)
     return COM
 
+
+density_alu = 2710
+length = 750 
+h_s = 30
+chord_r = 95
+chord_t = 80
+M_crit = 3
+P_thick = flutter(G_alu, (h_s*0.01), (chord_r*0.01), (chord_t*0.01), M_crit, P_atm) *1.2
+Pant_f = Fins(chord_r, h_s, chord_t, (chord_r - chord_t), P_dia, 1)
+Pant_body = Body(P_dia, length, 0)
+mass_t = P_thick * 0.5 * ((chord_r + chord_t)*0.01) * (h_s * 0.01) * density_alu *4
+fin_COM_est = (A_len*10**(2)) + Pant_body.h + Transition_G.length - Pant_f.C_r/2
+COM_p = COM_f(mass_t, fin_COM_est)
+print(Griffin_stability(0.3, A_len, A_f, cone, A_body, Pant_f, Pant_body, Transition_G, alpha, N_1, COM_p))
 
 '''
 def objective(v):
@@ -86,7 +102,7 @@ def objective(v):
     density_alu = 2710
     P_thick = flutter(G_alu, (h_s*0.01), (chord_r*0.01), (chord_t*0.01), M_crit, P_atm) *1.2
 
-    Pant_f = Fins(chord_r, h_s, chord_t, P_thick, P_dia, 1)
+    Pant_f = Fins(chord_r, h_s, chord_t, (chord_r - chord_t), P_dia, 1)
     Pant_body = Body(P_dia, length, 0)
 
     mass_t = P_thick * 0.5 * ((chord_r + chord_t)*0.01) * (h_s * 0.01) * density_alu *4
@@ -95,7 +111,7 @@ def objective(v):
     
     M0_stab = Griffin_stability(0.3, A_len, A_f, cone, A_body, Pant_f, Pant_body, Transition_G, alpha, N_1, COM_p)
     M3_stab = Griffin_stability(3, A_len, A_f, cone, A_body, Pant_f, Pant_body, Transition_G, alpha, N_1, COM_p)
-    if M0_stab < 1.5 or M3_stab < 1.1 or chord_t > (chord_r-10):
+    if M0_stab < 1.4 or M3_stab < 1.1 or chord_t > (chord_r-15):
         output = 10e9
     else:
         output = mass_t
