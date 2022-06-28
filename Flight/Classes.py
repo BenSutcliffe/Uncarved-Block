@@ -5,12 +5,12 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.widgets import Slider
 
+
 #Lengths in cm
 Nosecone_length = 60
 Body_dia = 13
 Body_len = 200
 CoM = 189 #for Aquila
-CoM2 = 494 #for total
 
 #For Panthera
 Panthera_dia = 60
@@ -31,14 +31,13 @@ N = 4
 class Fins:
   # Creates  a class fo fin objects which stores attributes
   "See twinned LaTeX document to see what each dimension refers to"
-  def __init__(self, C_r, s, C_t, X_t, Mac_f, b_radius, gamma=0):
+  def __init__(self, C_r, s, C_t, X_t, b_radius, gamma=0):
     # Initailises key parameters about the fin which are known geometric inputs, see LaTeX document to see which each refers to
     self.C_r = C_r
     self.s = s
     self.C_t = C_t
     self.X_t = X_t
     self.gamma = gamma
-    self.Mac_f = Mac_f
     self.body_radius = b_radius
 
   def y(self):
@@ -72,10 +71,6 @@ class Fins:
     #Finds leading fin angle
     le_angle = np.arctan((self.C_r - self.C_t)/(2*self.s))
     return le_angle
-  
-  def MAC_si(self):
-    norm_mac = self.Mac_f * (10**(-2))
-    return norm_mac
 
 class Boattail:
   #Initalises a class for the transition
@@ -91,7 +86,6 @@ class Boattail:
   def X_tr(self):
     X_s = 0.5*self.length
     return X_s
-
 
 
 class Body:
@@ -123,7 +117,7 @@ class Nosecone:
     X_f = 0.666 * self.L
     return X_f
 
-Base = Fins(Fin_basechord, Fin_length, Fin_topchord, Fin_thick, MAC_base, Body_dia)
+Base = Fins(Fin_basechord, Fin_length, Fin_topchord, Fin_thick, Body_dia)
 Bodyone = Body(Body_dia, Body_len, Nosecone_length)
 Cone = Nosecone(Nosecone_length)
 Transition = Boattail(Body_dia, Panthera_dia, Transition_length)

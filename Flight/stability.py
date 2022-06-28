@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.integrate import quad
 
 def CNalphaN_subs(n, s, A_ref, A_fin, Beta, gamma):
   #This finds the normal force coefficient for a given fin
@@ -30,9 +31,9 @@ def X_N(nose, h):
 
 def X_sf(c, s, A_fin, beta):
   #Method to find the new COP for the fins in the supersonic regime
-  AR = 2*(s*0.01)**2 / A_fin #Calculates the fin aspect ratio
+  A_r = 2*(s*0.01)**2 / A_fin #Calculates the fin aspect ratio
 
-  X_f = c * (((AR * beta) - 0.67)/((2*AR*beta) - 1)) #Finds the COP of the fin, as in OpenRocket
+  X_f = c * (((A_r * beta) - 0.67)/((2*A_r*beta) - 1)) #Finds the COP of the fin, as in OpenRocket
   return X_f
 
 
@@ -50,3 +51,25 @@ def X(bottom, planform, nose, alpha, CNalpha):
   #Finds the overall centre of pressure as a weighted mean of component COP and force coefficients, as from OpenRocket Documentation
   X = ((X_1 * C_1) + (X_3 * C_3) + (X_4 * C_4))/(C_1 + C_3 + C_4)
   return X
+
+def c_g(x, Fins):
+  #Equation for defining chord with fin height
+    c_sq = (Fins.C_r + ((Fins.C_t - Fins.C_r)*x)/Fins.s)**2
+    return c_sq
+
+def MAC(Fins, c_f):
+  #Integration to find MAC length
+  result, err = quad(c_f,0,Fins.s,args=(Fins,))
+  Mac = result/(Fins.area() * 10000)
+  return Mac
+
+def c_LE(x, Fins):
+  #Product of chord equation and LE equation
+    c_sq = (Fins.C_r + ((Fins.C_t - Fins.C_r)*x)/Fins.s)*((Fins.C_r - Fins.C_t)*x/Fins.s)
+    return c_sq
+
+def MAC_x(Fins, c_func):
+  #Integration to find MAC x position from edge
+  result, err = quad(c_func,0,Fins.s,args=(Fins,))
+  Mac = result/(Fins.area() * 10000)
+  return Mac

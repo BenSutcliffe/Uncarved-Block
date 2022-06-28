@@ -7,7 +7,7 @@ from Drag import *
 import Classes
 from Thrust import *
 import Global
-from Stability import X_sf, X_N, C_N, CNalphaN_subs, CNalphaN_super
+from Stability import X_sf, X_N, C_N, CNalphaN_subs, CNalphaN_super, MAC, c_g, MAC_x, c_LE
 
 Base_f = Classes.Base
 length_tot = Classes.total_length
@@ -52,7 +52,7 @@ fin_drag2 = []
 with alive_bar(iterations) as bar:
   for i in range(0, iterations):
     bar()
-    if height[i] >= 0 and height[i]<150000 and time[i] < 250:
+    if height[i] >= 0 and height[i]<150000 and time[i] < 10:
 
       for j in range(0, len(altitudes)):
         if height[i] >= altitudes[j] and height[i] < altitudes[j+1]:
@@ -73,7 +73,7 @@ with alive_bar(iterations) as bar:
         R_critical = R_crit(Rough, length_tot)
         Coeff_friction = friction_Re(Reynold, R_critical, Rough, length_tot)
         
-        Coeff_friction_total = friction_vel(Coeff_friction, Machno, Body.Arearef(), fineness, (np.pi *Body.areat()), (Base_f.X_t*10**-3), Base_f.area(), Base_f.MAC_si())
+        Coeff_friction_total = friction_vel(Coeff_friction, Machno, Body.Arearef(), fineness, (np.pi *Body.areat()), (Base_f.X_t*10**-3), Base_f.area(), (MAC(Base_f, c_g)*10**(-2)))
         Coeff_body_pressure = Body_pressure_drag(Machno, Body.Arearef(), (n_cone.L*10**(-2)))
         Coeff_base_drag = fin_pressure_drag(Machno, Base_f.leading_angle())
 
@@ -83,19 +83,19 @@ with alive_bar(iterations) as bar:
         fin_pos = (length_tot*10**(2)) - Base_f.C_r
         if Machno <= 0.8:
           CNalpha = CNalphaN_subs(N_f, Base_f.s, Body.Arearef(), Base_f.area(), beta, Base_f.angle_skew())
-          X_1 = (Base_f.X_f() + fin_pos) # Finds the centre of pressure for finset relative to the top of the rocket
-        elif Machno < 1.4:
+          X_1 = (Base_f.X_f() + fin_pos + MAC_x(Base_f, c_LE)) # Finds the centre of pressure for finset relative to the top of the rocket
+        elif Machno < 2:
           CNalphasubs = CNalphaN_subs(N_f, Base_f.s, Body.Arearef(), Base_f.area(), 0.6, Base_f.angle_skew())
-          CNalphasuper = CNalphaN_super(N_f, Body.Arearef(), Base_f.area(), 0.97979, alpha_f)
-          CNalpha = CNalphasubs + ((Machno - 0.8)/0.6) * (CNalphasuper - CNalphasubs)
+          CNalphasuper = CNalphaN_super(N_f, Body.Arearef(), Base_f.area(), 1.732, alpha_f)
+          CNalpha = CNalphasubs + ((Machno - 0.8)/1.2) * (CNalphasuper - CNalphasubs)
 
-          X_1subs = (Base_f.X_f() + fin_pos)
-          X_1super = (X_sf(Base_f.Mac_f, Base_f.s, Base_f.area(), 0.97979) + fin_pos)
-          X_1 = X_1subs + ((Machno - 0.8)/0.6) * (X_1super - X_1subs)
+          X_1subs = (Base_f.X_f() + fin_pos + MAC_x(Base_f, c_LE))
+          X_1super = (X_sf(MAC(Base_f, c_g), Base_f.s, Base_f.area(), 1.732) + fin_pos + MAC_x(Base_f, c_LE))
+          X_1 = X_1subs + ((Machno - 0.8)/1.2) * (X_1super - X_1subs)
 
         else:
           CNalpha = CNalphaN_super(N_f, Body.Arearef(), Base_f.area(), beta, alpha_f)
-          X_1 = (X_sf(Base_f.Mac_f, Base_f.s, Base_f.area(), beta) + fin_pos)
+          X_1 = (X_sf(MAC(Base_f, c_g), Base_f.s, Base_f.area(), beta) + fin_pos + MAC_x(Base_f, c_LE))
 
 
         X_3 = X_N(Body.n_1, Body.h) # Finds the centre of pressure for body relative to the top of the rocket
