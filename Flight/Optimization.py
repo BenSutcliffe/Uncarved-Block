@@ -5,6 +5,7 @@ from Thrust import *
 import Global
 from Stability import X_sf, X_N, C_N, CNalphaN_subs, CNalphaN_super
 from Flutter import flutter, P_atm, G_alu
+from scipy.optimize import differential_evolution
 
 A_f = Classes.Base
 A_len = Classes.total_length
@@ -72,41 +73,36 @@ def Griffin_stability(Machno, Aquila_length, Aquila_f, n_cone, Aquila_Body, Pant
     Cal = (X - Classes.CoM2)/Panthera_body.d
     return Cal #Stores overall COP
 
-
+def new():
+    return 0 
 
 P_C_r = 80
 P_h = 35
 P_C_t = 60
 P_f_t = 10
 MAC_base = 0
-P_len = 750
-Pan_f = Fins(P_C_r, P_h, P_C_t, P_f_t,  MAC_base, P_dia, 1)
-Pan_body = Body(P_dia, P_len, 0)
 
+def objective(v):
+    length, chord_r, chord_t, h_s = v
+    M_crit = 3
+    density_alu = 2710
+    Pant_f = Fins(chord_r, h_s, chord_t, P_f_t,  MAC_base, P_dia, 1)
+    Pant_body = Body(P_dia, length, 0)
+    P_thick = flutter(G_alu, (h_s*0.01), (chord_r*0.01), (chord_t*0.01), M_crit, P_atm)
+    M0_stab = Griffin_stability(0.3, A_len, A_f, cone, A_body, Pant_f, Pant_body, Transition_G, alpha, N_1)
+    M3_stab = Griffin_stability(3, A_len, A_f, cone, A_body, Pant_f, Pant_body, Transition_G, alpha, N_1)
+    if M0_stab < 1.5 or M3_stab < 1.2 or chord_t > (chord_r-10):
+        output = 10e9
+    else:
+        mass_fin = P_thick * 0.5 * ((chord_r + chord_t)*0.01) * (h_s * 0.01) * density_alu
+        output = mass_fin * 4
+    return output
 
-min_mass = 10E9
-M_crit = 3
-density_alu = 2710
-count = 0
-for length in range(350, 750):
-    print('Here we go again')
-    for chord_r in range(1,201):
-        for chord_t in range(1,201):
-            for h_s in range(1, 61):
-                Pant_f = Fins(chord_r, h_s, chord_t, P_f_t,  MAC_base, P_dia, 1)
-                Pant_body = Body(P_dia, length, 0)
-                P_thick = flutter(G_alu, h_s, chord_r, chord_t, M_crit, P_atm)[0]
-                M0_stab = Griffin_stability(0.3, A_len, A_f, cone, A_body, Pan_f, Pan_body, Transition_G, alpha, N_1)
-                M3_stab = Griffin_stability(3, A_len, A_f, cone, A_body, Pan_f, Pan_body, Transition_G, alpha, N_1)
-
-                mass = P_thick * 0.5 * ((chord_r + chord_t)*0.01) * (h_s * 0.01) * density_alu
-
-                if M0_stab < 1.5 or M3_stab < 1.5 or chord_t > chord_r:
-                    count += 1
-                    print('No {}'.format(count))
-                elif mass < min_mass:
-                    min_mass = mass
-                    count += 1
-                    print('Ok {}'.format(count))
-                    
-
+bounds = [[350, 750], [1, 200], [1, 200], [1, 70]]
+result = differential_evolution(objective, bounds)
+print('Status : %s' % result['message'])
+print('Total Evaluations: %d' % result['nfev'])
+# evaluate solution
+solution = result['x']
+evaluation = objective(solution)
+print('Solution: f(%s) = %.5f' % (solution, evaluation))
