@@ -7,7 +7,7 @@ from Drag import *
 import Classes
 from Thrust import *
 import Global
-from Stability import X_sf, X_N, C_N, CNalphaN_subs, CNalphaN_super, MAC, c_g, MAC_x, c_LE
+from stability import X_sf, X_N, C_N, CNalphaN_subs, CNalphaN_super, MAC, c_g, MAC_x, c_LE
 
 Base_f = Classes.Base
 length_tot = Classes.total_length

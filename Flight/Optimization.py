@@ -1,11 +1,10 @@
 from Drag import *
 import Classes
 from Classes import Fins, Body
-from Stability import MAC, c_g, MAC_x, c_LE
+from stability import MAC, c_g, MAC_x, c_LE, flutter, P_atm, G_alu
 from Thrust import *
 import Global
-from Stability import X_sf, X_N, C_N, CNalphaN_subs, CNalphaN_super
-from Flutter import flutter, P_atm, G_alu
+from stability import X_sf, X_N, C_N, CNalphaN_subs, CNalphaN_super, pressure_position_transonic
 from scipy.optimize import differential_evolution
 
 A_f = Classes.Base
@@ -24,7 +23,7 @@ def Griffin_stability(Machno, Aquila_length, Aquila_f, n_cone, Aquila_Body, Pant
     fin_pos_Aquila = (Aquila_length*10**(2)) - Aquila_f.C_r
     fin_pos_Panthera = (Aquila_length*10**(2)) + Panthera_body.h + Trans_boat.length - Panthera_f.C_r
 
-    if Machno <= 0.8:
+    if Machno <= 0.5:
         CNalpha_a = CNalphaN_subs(N_f, Aquila_f.s, Panthera_body.Arearef(), Aquila_f.area(), beta, Aquila_f.angle_skew())
         X_1_a = (Aquila_f.X_f() + fin_pos_Aquila) # Finds the centre of pressure for finset relative to the top of the rocket
 
@@ -35,16 +34,12 @@ def Griffin_stability(Machno, Aquila_length, Aquila_f, n_cone, Aquila_Body, Pant
         CNalphasubs_a = CNalphaN_subs(N_f, Aquila_f.s, Panthera_body.Arearef(), Aquila_f.area(), 0.6, Aquila_f.angle_skew())
         CNalphasuper_a = CNalphaN_super(N_f, Panthera_body.Arearef(), Aquila_f.area(), 1.732, alpha_f)
         CNalpha_a = CNalphasubs_a + ((Machno - 0.8)/1.2) * (CNalphasuper_a - CNalphasubs_a)
-        X_1subs_a = (Aquila_f.X_f() + fin_pos_Aquila + MAC_x(Aquila_f, c_LE))
-        X_1super_a = (X_sf(MAC(Aquila_f, c_g), Aquila_f.s, Aquila_f.area(), 1.732) + fin_pos_Aquila + MAC_x(Aquila_f, c_LE))
-        X_1_a = X_1subs_a + ((Machno - 0.8)/1.2) * (X_1super_a - X_1subs_a)
+        X_1_a = pressure_position_transonic(MAC(Aquila_f, c_g), Aquila_f.s, Aquila_f.area(), Machno) + fin_pos_Aquila + MAC_x(Aquila_f, c_LE)
 
         CNalphasubs_f = CNalphaN_subs(N_f, Panthera_f.s, Panthera_body.Arearef(), Panthera_f.area(), 0.6, Panthera_f.angle_skew())
         CNalphasuper_f = CNalphaN_super(N_f, Panthera_body.Arearef(), Panthera_f.area(), 1.732, alpha_f)
         CNalpha_f = CNalphasubs_f + ((Machno - 0.8)/0.6) * (CNalphasuper_f - CNalphasubs_f)
-        X_1subs_f = (Panthera_f.X_f() + fin_pos_Panthera + MAC_x(Panthera_f, c_LE))
-        X_1super_f = (X_sf(MAC(Panthera_f, c_g), Panthera_f.s, Panthera_f.area(), 1.732) + fin_pos_Panthera + MAC_x(Panthera_f, c_LE))
-        X_1_f = X_1subs_f + ((Machno - 0.8)/1.2) * (X_1super_f - X_1subs_f)
+        X_1_f = pressure_position_transonic(MAC(Panthera_f, c_g), Panthera_f.s, Panthera_f.area(), Machno) + fin_pos_Panthera + MAC_x(Panthera_f, c_LE)
 
     else:
         CNalpha_a = CNalphaN_super(N_f, Panthera_body.Arearef(), Aquila_f.area(), beta, alpha_f)
@@ -69,6 +64,7 @@ def Griffin_stability(Machno, Aquila_length, Aquila_f, n_cone, Aquila_Body, Pant
     C_2_g = Trans_boat.CN_tr()
     X_2_g = Trans_boat.X_tr() + (Aquila_length*10**(2))
 
+    print(X_1_a)
     #Finds the overall centre of pressure as a weighted mean of component COP and force coefficients, as from OpenRocket Documentation
     X = ((X_1_a * C_1_a) + (X_3_a * C_3_a) + (X_4_a * C_4_a) + (C_2_g*X_2_g) + (X_3_f * C_3_f)+ (X_1_f * C_1_f))/(C_1_a + C_3_a + C_4_a + C_3_f + C_1_f + C_2_g)
     
@@ -93,7 +89,8 @@ Pant_body = Body(P_dia, length, 0)
 mass_t = P_thick * 0.5 * ((chord_r + chord_t)*0.01) * (h_s * 0.01) * density_alu *4
 fin_COM_est = (A_len*10**(2)) + Pant_body.h + Transition_G.length - Pant_f.C_r/2
 COM_p = COM_f(mass_t, fin_COM_est)
-print(Griffin_stability(0.3, A_len, A_f, cone, A_body, Pant_f, Pant_body, Transition_G, alpha, N_1, COM_p))
+print(Griffin_stability(1.7, A_len, A_f, cone, A_body, Pant_f, Pant_body, Transition_G, alpha, N_1, COM_p))
+
 
 '''
 def objective(v):
@@ -111,7 +108,7 @@ def objective(v):
     
     M0_stab = Griffin_stability(0.3, A_len, A_f, cone, A_body, Pant_f, Pant_body, Transition_G, alpha, N_1, COM_p)
     M3_stab = Griffin_stability(3, A_len, A_f, cone, A_body, Pant_f, Pant_body, Transition_G, alpha, N_1, COM_p)
-    if M0_stab < 1.4 or M3_stab < 1.1 or chord_t > (chord_r-15):
+    if M0_stab < 1.6 or M3_stab < 1.2 or chord_t > (chord_r-15):
         output = 10e9
     else:
         output = mass_t

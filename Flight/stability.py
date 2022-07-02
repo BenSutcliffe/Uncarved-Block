@@ -1,6 +1,9 @@
 import numpy as np
 from scipy.integrate import quad
 
+G_alu = 24E9
+P_atm = 1E5
+
 def CNalphaN_subs(n, s, A_ref, A_fin, Beta, gamma):
   #This finds the normal force coefficient for a given fin
   CNalphaN = (n/2) * (2 * np.pi) * (((s*0.01)**2) /A_ref)/(1 + np.sqrt(1 + ((Beta * (s*0.01)**2)/(A_fin * np.cos(gamma)))**2)) #From the open rocket documentation
@@ -32,7 +35,6 @@ def X_N(nose, h):
 def X_sf(c, s, A_fin, beta):
   #Method to find the new COP for the fins in the supersonic regime
   A_r = 2*(s*0.01)**2 / A_fin #Calculates the fin aspect ratio
-
   X_f = c * (((A_r * beta) - 0.67)/((2*A_r*beta) - 1)) #Finds the COP of the fin, as in OpenRocket
   return X_f
 
@@ -73,3 +75,23 @@ def MAC_x(Fins, c_func):
   result, err = quad(c_func,0,Fins.s,args=(Fins,))
   Mac = result/(Fins.area() * 10000)
   return Mac
+
+def flutter(G, h, c_r, c_t, M, P):
+    s = 0.5*(c_r + c_t)*h
+    a = ((h**2)/s)
+    lam = c_t/c_r
+    t = (((M**2) * (P * (lam + 1)*(a**3))/(1.5*G*(a+2)))**(1/3))*c_r
+    return t
+
+def pressure_position_transonic(c, s, A_fin, Mach):
+  f_1 = X_sf(c, s, A_fin, 1.732)/c
+  dB = 1e-2
+  beta_1 = np.sqrt(np.abs((2+dB)**2 - 1))
+  beta_2 = np.sqrt(np.abs((2-dB)**2 - 1))
+  f_2 = (X_sf(c, s, A_fin, (beta_1))/c  - X_sf(c, s, A_fin, (beta_2))/c)/(2*dB)
+  a = np.array([[1/32, 1/16, 1/8, 1/4, 1/2, 1], [5/16, 1/2, 3/4, 1, 1, 0], [32, 16, 8, 4, 2, 1], [80, 32, 12, 4, 1, 0], [160, 48, 12, 2, 0, 0], [240, 48, 6, 0, 0, 0]])
+  b = np.array([0.25, 0, f_1, f_2,  0, 0])
+  x = np.linalg.solve(a, b)
+  value = ((x[0] * (Mach**5)) + (x[1] * (Mach**4)) + (x[2] * (Mach**3)) + (x[3] * (Mach**2)) + (x[4] * (Mach)) + (x[5]))*c
+  print(f_1, f_2)
+  return value
