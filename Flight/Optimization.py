@@ -29,16 +29,19 @@ def Griffin_stability(Machno, Aquila_length, Aquila_f, n_cone, Aquila_Body, Pant
 
         CNalpha_f = CNalphaN_subs(N_f, Panthera_f.s, Panthera_body.Arearef(), Panthera_f.area(), beta, Panthera_f.angle_skew())
         X_1_f = (Panthera_f.X_f() + fin_pos_Panthera) # Finds the centre of pressure for finset relative to the top of the rocket
-        
-    elif Machno < 2:
-        CNalphasubs_a = CNalphaN_subs(N_f, Aquila_f.s, Panthera_body.Arearef(), Aquila_f.area(), 0.6, Aquila_f.angle_skew())
-        CNalphasuper_a = CNalphaN_super(N_f, Panthera_body.Arearef(), Aquila_f.area(), 1.732, alpha_f)
-        CNalpha_a = CNalphasubs_a + ((Machno - 0.8)/1.2) * (CNalphasuper_a - CNalphasubs_a)
+
+    elif Machno < 1:
+        CNalpha_a = CNalphaN_subs(N_f, Aquila_f.s, Panthera_body.Arearef(), Aquila_f.area(), beta, Aquila_f.angle_skew())
         X_1_a = pressure_position_transonic(MAC(Aquila_f, c_g), Aquila_f.s, Aquila_f.area(), Machno) + fin_pos_Aquila + MAC_x(Aquila_f, c_LE)
 
-        CNalphasubs_f = CNalphaN_subs(N_f, Panthera_f.s, Panthera_body.Arearef(), Panthera_f.area(), 0.6, Panthera_f.angle_skew())
-        CNalphasuper_f = CNalphaN_super(N_f, Panthera_body.Arearef(), Panthera_f.area(), 1.732, alpha_f)
-        CNalpha_f = CNalphasubs_f + ((Machno - 0.8)/0.6) * (CNalphasuper_f - CNalphasubs_f)
+        CNalpha_f = CNalphaN_subs(N_f, Panthera_f.s, Panthera_body.Arearef(), Panthera_f.area(), beta, Panthera_f.angle_skew())
+        X_1_f = pressure_position_transonic(MAC(Panthera_f, c_g), Panthera_f.s, Panthera_f.area(), Machno) + fin_pos_Panthera + MAC_x(Panthera_f, c_LE)
+
+    elif Machno < 2:
+        CNalpha_a = CNalphaN_super(N_f, Panthera_body.Arearef(), Aquila_f.area(), beta, alpha_f)
+        X_1_a = pressure_position_transonic(MAC(Aquila_f, c_g), Aquila_f.s, Aquila_f.area(), Machno) + fin_pos_Aquila + MAC_x(Aquila_f, c_LE)
+
+        CNalpha_f =  CNalphaN_super(N_f, Panthera_body.Arearef(), Panthera_f.area(), beta, alpha_f)
         X_1_f = pressure_position_transonic(MAC(Panthera_f, c_g), Panthera_f.s, Panthera_f.area(), Machno) + fin_pos_Panthera + MAC_x(Panthera_f, c_LE)
 
     else:
@@ -76,7 +79,7 @@ def COM_f(mass, mean_length, fuel_m = 378.6, COM_0 = 476):
     COM = ((mass*mean_length) + (fuel_m * COM_0))/(mass+fuel_m)
     return COM
 
-
+'''
 density_alu = 2710
 length = 750 
 h_s = 30
@@ -89,10 +92,10 @@ Pant_body = Body(P_dia, length, 0)
 mass_t = P_thick * 0.5 * ((chord_r + chord_t)*0.01) * (h_s * 0.01) * density_alu *4
 fin_COM_est = (A_len*10**(2)) + Pant_body.h + Transition_G.length - Pant_f.C_r/2
 COM_p = COM_f(mass_t, fin_COM_est)
-print(Griffin_stability(1.7, A_len, A_f, cone, A_body, Pant_f, Pant_body, Transition_G, alpha, N_1, COM_p))
-
-
+print(Griffin_stability(1.5, A_len, A_f, cone, A_body, Pant_f, Pant_body, Transition_G, alpha, N_1, COM_p))
 '''
+
+
 def objective(v):
     length, chord_r, chord_t, h_s = v
     M_crit = 3
@@ -122,4 +125,3 @@ print('Total Evaluations: %d' % result['nfev'])
 solution = result['x']
 evaluation = objective(solution)
 print('Solution: f(%s) = %.5f' % (solution, evaluation))
-'''

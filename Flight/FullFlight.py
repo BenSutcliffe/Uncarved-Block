@@ -7,7 +7,7 @@ from Drag import *
 import Classes
 from Thrust import *
 import Global
-from stability import X_sf, X_N, C_N, CNalphaN_subs, CNalphaN_super, MAC, c_g, MAC_x, c_LE
+from stability import X_sf, X_N, C_N, CNalphaN_subs, CNalphaN_super, MAC, c_g, MAC_x, c_LE, pressure_position_transonic
 
 Base_f = Classes.Base
 length_tot = Classes.total_length
@@ -81,17 +81,18 @@ with alive_bar(iterations) as bar:
         drag[i] = Coefficient_of_drag * ((velocity[i]) ** 2) * 0.5 * density * Body.Arearef()
 
         fin_pos = (length_tot*10**(2)) - Base_f.C_r
-        if Machno <= 0.8:
+        if Machno < 0.5:
           CNalpha = CNalphaN_subs(N_f, Base_f.s, Body.Arearef(), Base_f.area(), beta, Base_f.angle_skew())
-          X_1 = (Base_f.X_f() + fin_pos + MAC_x(Base_f, c_LE)) # Finds the centre of pressure for finset relative to the top of the rocket
-        elif Machno < 2:
-          CNalphasubs = CNalphaN_subs(N_f, Base_f.s, Body.Arearef(), Base_f.area(), 0.6, Base_f.angle_skew())
-          CNalphasuper = CNalphaN_super(N_f, Body.Arearef(), Base_f.area(), 1.732, alpha_f)
-          CNalpha = CNalphasubs + ((Machno - 0.8)/1.2) * (CNalphasuper - CNalphasubs)
+          X_1 = (Base_f.X_f() + fin_pos) # Finds the centre of pressure for finset relative to the top of the rocket
+        
 
-          X_1subs = (Base_f.X_f() + fin_pos + MAC_x(Base_f, c_LE))
-          X_1super = (X_sf(MAC(Base_f, c_g), Base_f.s, Base_f.area(), 1.732) + fin_pos + MAC_x(Base_f, c_LE))
-          X_1 = X_1subs + ((Machno - 0.8)/1.2) * (X_1super - X_1subs)
+        elif Machno < 1:
+          CNalpha = CNalphaN_subs(N_f, Base_f.s, Body.Arearef(), Base_f.area(), beta, Base_f.angle_skew())
+          X_1 = (pressure_position_transonic(MAC(Base_f, c_g), Base_f.s, Base_f.area(), Machno) + fin_pos + MAC_x(Base_f, c_LE))
+
+        elif Machno < 2:
+          CNalpha = CNalphaN_super(N_f, Body.Arearef(), Base_f.area(), 1.732, alpha_f)
+          X_1 = (pressure_position_transonic(MAC(Base_f, c_g), Base_f.s, Base_f.area(), Machno) + fin_pos + MAC_x(Base_f, c_LE))
 
         else:
           CNalpha = CNalphaN_super(N_f, Body.Arearef(), Base_f.area(), beta, alpha_f)
