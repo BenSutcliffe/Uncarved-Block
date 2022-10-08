@@ -22,6 +22,14 @@ def CNalphaN_super(n, A_ref, A_fin, Beta, alpha):
   CNalphaN = (n/2) * (A_fin/A_ref) * ((K_1) + (K_2 * alpha * np.pi/180) + (K_3 * (alpha * np.pi/180)**2)) 
   return CNalphaN
 
+def CNalphaN_trans(n, s, A_ref, A_fin, Mach, gamma, alpha):
+  CNalphaNpoint8 = CNalphaN_subs(n, s, A_ref, A_fin, 0.6, gamma)
+  CNalphaNonetwo = CNalphaN_super(n, A_ref, A_fin, 0.663, alpha)
+  CNalphaN = CNalphaNpoint8 + ((CNalphaNonetwo-CNalphaNpoint8)*((Mach-0.8)/(0.4)))
+  return CNalphaN
+
+
+
 def C_N(A_plan, A_ref, alpha, K=1.1):
   #Normal force coefficient of the rocket body
   C_N = K * A_plan/A_ref * (np.sin(np.pi*alpha/180))**2
@@ -93,5 +101,4 @@ def pressure_position_transonic(c, s, A_fin, Mach):
   b = np.array([0.25, 0, f_1, f_2,  0, 0])
   x = np.linalg.solve(a, b)
   value = ((x[0] * (Mach**5)) + (x[1] * (Mach**4)) + (x[2] * (Mach**3)) + (x[3] * (Mach**2)) + (x[4] * (Mach)) + (x[5]))*c
-  print(f_1, f_2)
   return value

@@ -44,7 +44,7 @@ def Body_pressure_drag(Machno, maximumdiameter, noseconelen):
     Coeff_body_pressure = 0
     Coeff_body_pressure_subs = 0.8*(np.sin(eta))**2
     Coeff_body_pressure_M1 = np.sin(eta)
-    Coeff_body_pressure_super = (2.1 * ((np.sin(eta))**2)) + ((np.sin(eta))/(2 * np.sqrt((Machno**2) - 1)))
+    Coeff_body_pressure_super = (2.1 * ((np.sin(eta))**2)) + ((np.sin(eta))/(2 * np.sqrt(np.abs((Machno**2) - 1))))
     if Machno < 0.8:
         Coeff_body_pressure = Coeff_body_pressure_subs
     elif Machno >= 0.8 and Machno < 1:

@@ -43,8 +43,8 @@ dynamic_pressure = np.zeros(iterations + 100)
 mass = np.zeros(iterations + 100)
 calibre = np.zeros(iterations + 100)
 
-height[0] = 20000 #18000
-velocity[0] = 800 #854
+height[0] = 0 #18000
+velocity[0] = 0 #854
 mass[0] = Global.start_mass
 
 fin_drag2 = []
@@ -52,7 +52,7 @@ fin_drag2 = []
 with alive_bar(iterations) as bar:
   for i in range(0, iterations):
     bar()
-    if height[i] >= 0 and height[i]<150000 and time[i] < 10:
+    if height[i] >= 0 and height[i]<150000 and time[i] < 40:
 
       for j in range(0, len(altitudes)):
         if height[i] >= altitudes[j] and height[i] < altitudes[j+1]:
@@ -81,18 +81,22 @@ with alive_bar(iterations) as bar:
         drag[i] = Coefficient_of_drag * ((velocity[i]) ** 2) * 0.5 * density * Body.Arearef()
 
         fin_pos = (length_tot*10**(2)) - Base_f.C_r
+        
         if Machno < 0.5:
           CNalpha = CNalphaN_subs(N_f, Base_f.s, Body.Arearef(), Base_f.area(), beta, Base_f.angle_skew())
           X_1 = (Base_f.X_f() + fin_pos) # Finds the centre of pressure for finset relative to the top of the rocket
-        
 
-        elif Machno < 1:
+        elif Machno < 0.8:
           CNalpha = CNalphaN_subs(N_f, Base_f.s, Body.Arearef(), Base_f.area(), beta, Base_f.angle_skew())
           X_1 = (pressure_position_transonic(MAC(Base_f, c_g), Base_f.s, Base_f.area(), Machno) + fin_pos + MAC_x(Base_f, c_LE))
 
+        elif Machno < 1.2:
+          CNalpha = 4
+          X_1 = 10
+
         elif Machno < 2:
-          CNalpha = CNalphaN_super(N_f, Body.Arearef(), Base_f.area(), 1.732, alpha_f)
-          X_1 = (pressure_position_transonic(MAC(Base_f, c_g), Base_f.s, Base_f.area(), Machno) + fin_pos + MAC_x(Base_f, c_LE))
+          CNalpha = CNalphaN_super(N_f, Body.Arearef(), Base_f.area(), beta, alpha_f)
+          X_1 = 10
 
         else:
           CNalpha = CNalphaN_super(N_f, Body.Arearef(), Base_f.area(), beta, alpha_f)
@@ -102,7 +106,7 @@ with alive_bar(iterations) as bar:
         X_3 = X_N(Body.n_1, Body.h) # Finds the centre of pressure for body relative to the top of the rocket
         X_4 = n_cone.X_f() # Finds the centre of pressure for the nosecone relative to the top of the rocket
 
-        C_1 = CNalpha * Base_f.K() #Finds the normal force coefficent for a finset
+        C_1 = 10 * Base_f.K() #Finds the normal force coefficent for a finset
         C_3 = C_N(Body.areat(), Body.Arearef(), alpha_f) #Finds the normal force coefficent for the body
         C_4 = n_cone.C[alpha_f] #Finds the normal force coefficent for the nosecone
 
@@ -128,7 +132,7 @@ with alive_bar(iterations) as bar:
           drag[i] = -1 * Global.cdmain * ((velocity[i]) ** 2) * 0.5 * density * (maincount/(Global.maindeploytime/dt)) * Global.amain
 
       if float(dt*i) <= burntime:
-        thrust = Thrust_curve_N5800(time[i])
+        thrust = Thrust_curve_8088(time[i])
         mass[i+1] = mass[i] - ((Global.start_mass-Global.end_mass)*dt/burntime)
         acceleration[i+1] = (float(thrust) - float(drag[i]))/float(mass[i]) - 9.81  # Gravity
       else:
@@ -137,7 +141,7 @@ with alive_bar(iterations) as bar:
       velocity[i+1] = float(velocity[i]) + float(acceleration[i]) * dt
       height[i+1] = float(height[i]) + float(velocity[i+1]) * dt
       dynamic_pressure[i+1] = 0.5* density * (float(velocity[i]**2))
-      #print(time[i], height[i], velocity[i], drag[i], mass[i])
+      print(time[i], height[i], velocity[i], drag[i], mass[i])
 
 maxheight = np.sort(height)
 print("Maximum height: ", maxheight[-1])
@@ -162,6 +166,7 @@ max_drag_f = max(fin_drag2)
 print(max_drag_f)
 
 plt.plot(time[0:len(height):10], height[0:len(height):10])
+plt.xlim(0,50)
 plt.legend("height")
 plt.show()
 
