@@ -91,6 +91,11 @@ def flutter(G, h, c_r, c_t, M, P):
     t = (((M**2) * (P * (lam + 1)*(a**3))/(1.5*G*(a+2)))**(1/3))*c_r
     return t
 
+def flutter_NACA(v, a, p, p0, c, A, G_el, lam):
+  result = (((v/a)**2)*(p/p0)*39.3*(lam+1)*(A*c)**3)/(2*G_el*(A+2))
+  t = (result)**(1./3)
+  return t
+
 def pressure_position_transonic(c, s, A_fin, Mach):
   f_1 = X_sf(c, s, A_fin, 1.732)/c
   dB = 1e-2

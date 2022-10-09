@@ -7,23 +7,13 @@ from matplotlib.widgets import Slider
 
 
 #Lengths in cm
-Nosecone_length = 60
-Body_dia = 13
-Body_len = 200
-CoM = 189 #for Aquila
-
-#For Panthera
-Panthera_dia = 60
-Transition_length = 5
+Nosecone_length = 177.5
+Body_dia = 37.5
+Body_len = 786.5
+CoM = 610 #for Griffin
 
 #Lengths in cm/mm
-Fin_basechord = 36
-Fin_length = 20
-Fin_topchord = 16
-Fin_thick = 9
-Fin_Xt = 10
 total_length = (Body_len+Nosecone_length)*10**(-2)
-MAC_base = 27.282
 
 Roughness =3e-6
 fineness = total_length/(Body_dia*10**(-3))
@@ -111,14 +101,12 @@ class Nosecone:
   def __init__(self, L):
      self.C = [2, 2.05, 2.09, 2.14, 2.19, 2.23, 2.28, 2.32, 2.37, 2.41, 2.45, 2.5, 2.54, 2.58, 2.62, 2.66] #Describes heow nosecone normal coefficient changes with angle of attack
      self.L = L
-     self.CombinedC = 0.094
+     self.CombinedC = 2
     
   def X_f(self):
     #Function to find the centre of pressure for a nosecone
     X_f = 0.666 * self.L
     return X_f
 
-Base = Fins(Fin_basechord, Fin_length, Fin_topchord, Fin_Xt, Body_dia)
 Bodyone = Body(Body_dia, Body_len, Nosecone_length)
 Cone = Nosecone(Nosecone_length)
-Transition = Boattail(Body_dia, Panthera_dia, Transition_length)
