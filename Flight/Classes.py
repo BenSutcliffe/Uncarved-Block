@@ -17,7 +17,7 @@ total_length = (Body_len+Nosecone_length)*10**(-2)
 
 Roughness =3e-6
 fineness = total_length/(Body_dia*10**(-3))
-N = 4
+N = 6
 
 class Fins:
   # Creates  a class fo fin objects which stores attributes

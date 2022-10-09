@@ -2,9 +2,9 @@ from site import venv
 from Drag import *
 import Classes
 from Classes import Fins, Body
-from stability import MAC, c_g, MAC_x, c_LE, flutter_NACA, P_atm, G_alu
-import Global
-from stability import X_sf, X_N, C_N, CNalphaN_subs, CNalphaN_super, pressure_position_transonic
+from stability import MAC, c_g, MAC_x, c_LE, flutter_NACA, G_alu_psi
+from Global import *
+from stability import X_sf, X_N, C_N, CNalphaN_subs, CNalphaN_super, pressure_position_transonic, C_N_force, F_fin_N
 from scipy.optimize import differential_evolution
 
 tot_len = Classes.total_length
@@ -31,7 +31,7 @@ def Griffin_stability(Machno, total_length, n_cone, Panthera_f, Panthera_body, a
         X_1_f = pressure_position_transonic(MAC(Panthera_f, c_g), Panthera_f.s, Panthera_f.area(), Machno) + fin_pos_Panthera + MAC_x(Panthera_f, c_LE)
     
     elif Machno < 1.2:
-        CNalpha_f = CNalphaN_super(N_f, Panthera_f.s, Panthera_body.Arearef(), Panthera_f.area(), beta, Panthera_f.angle_skew())
+        CNalpha_f = CNalphaN_super(N_f, Panthera_body.Arearef(), Panthera_f.area(), beta, alpha_f)
         X_1_f = pressure_position_transonic(MAC(Panthera_f, c_g), Panthera_f.s, Panthera_f.area(), Machno) + fin_pos_Panthera + MAC_x(Panthera_f, c_LE)
 
     else:
@@ -78,20 +78,20 @@ def objective(v):
     density_alu = 2710
     lambda_0 = chord_t/chord_r
 
-    Aratio = 2*(h_s**2)/(0.5*(chord_r + chord_t)*h_s)
+    Aratio = (h_s**2)/(0.5*(chord_r + chord_t)*h_s)
     Pant_f = Fins(chord_r, h_s, chord_t, (chord_r - chord_t), P_dia, 1)
 
     c = MAC(Pant_f, c_g)/100
-    P_thick = flutter_NACA(1588.34, 295, 3235.974, 94321.68, c, Aratio, G_alu, lambda_0)*2
+    P_thick = flutter_NACA(885, 295, 3235.974, 94321.68, c, Aratio, G_alu_psi, lambda_0)*1.5
 
     Pant_body = Body(P_dia, length, 0)
 
     mass_t = P_thick * 0.5 * ((chord_r + chord_t)*0.01) * (h_s * 0.01) * density_alu * N_1
     
-    speeds = np.linspace(0.3, 5.5, 10)
+    speeds = np.linspace(0.3, 5.5, 30)
     for velocity in speeds:
-        M_stab = Griffin_stability(velocity, tot_len, cone, Pant_f, Pant_body, alpha, (N_1), COM_est)
-        if M_stab < 2 or chord_t > (chord_r-15):
+        M_stab = Griffin_stability(velocity, tot_len, cone, Pant_f, Pant_body, alpha, (N_1*0.913), COM_est)
+        if M_stab < 1 or chord_t > (chord_r-15):
             output = 10e9
             return output
         else:
@@ -109,12 +109,19 @@ solution = result['x']
 evaluation = objective(solution)
 print('Solution: f(%s) = %.5f' % (solution, evaluation))
 
-chord_r = 120
-chord_t = 104.8
-h_s = 54.35
+chord_r = solution[0]
+chord_t = solution[1]
+h_s = solution[2]
+alpha = 5
+d_abso = alpha*np.pi/180
+length = body_len
 Pant_f = Fins(chord_r, h_s, chord_t, (chord_r - chord_t), P_dia, 1)
 lambda_0 = chord_t/chord_r
 c = MAC(Pant_f, c_g)/100
-Aratio = 2*(h_s**2)/(0.5*(chord_r + chord_t)*h_s)
-P_thick = flutter_NACA(1588.34, 295, 3235.974, 94321.68, c, Aratio, G_alu, lambda_0)*3
-print(P_thick)
+Aratio = (h_s**2)/(0.5*(chord_r + chord_t)*h_s)
+Pant_body = Body(P_dia, length, 0)
+P_thick = flutter_NACA(885, 295, 3235.974, 94321.68, c, Aratio, G_alu_psi, lambda_0)*1.5
+CNalpha_f = CNalphaN_super(N_1, Pant_body.Arearef(), Pant_f.area(), 5.41, alpha)
+C_N = C_N_force(CNalpha_f, d_abso)
+F_fin = F_fin_N(C_N, max_q_rho, Pant_body.Arearef(), max_q_velo, d_abso)
+print(P_thick, F_fin)

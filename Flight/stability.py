@@ -3,6 +3,7 @@ from scipy.integrate import quad
 
 G_alu = 24E9
 P_atm = 1E5
+G_alu_psi = 3.481e6
 
 def CNalphaN_subs(n, s, A_ref, A_fin, Beta, gamma):
   #This finds the normal force coefficient for a given fin
@@ -107,3 +108,15 @@ def pressure_position_transonic(c, s, A_fin, Mach):
   x = np.linalg.solve(a, b)
   value = ((x[0] * (Mach**5)) + (x[1] * (Mach**4)) + (x[2] * (Mach**3)) + (x[3] * (Mach**2)) + (x[4] * (Mach)) + (x[5]))*c
   return value
+
+def F_fin_N(C_N_, rho, A, v, alpha):
+  F_fin_val = 0.5 * C_N_ * rho * A * (v**2)
+  return F_fin_val
+
+def C_N_force(C_N_a, delta):
+  C_m_val = C_N_a*delta
+  return C_m_val
+
+def M_fin_norm(F_N, X):
+  M_fin_n = F_N * (X)
+  return M_fin_n
