@@ -49,22 +49,24 @@ def objective(v):
     Mach_numbers = np.linspace(0.3, 5.5, 30) #mach numbers to check stability at
     for velocity in Mach_numbers:
         stability_calibre = Griffin_stability(velocity, total_length, vehicle_nosecone, test_fins, test_body, angle_attack, N_fins, CoM) #calculates stability for this config
-        if stability_calibre < 0.1 or chord_tip > (chord_root-0.15): #if it is too unstable or poor geometry
+        if stability_calibre < desired_stability or chord_tip > (chord_root-0.15): #if it is too unstable or poor geometry
             output = 10e9 #returns an infeasible value - won't appear as mass optimal
             return output
         else:
             pass
     output = mass_fins #if sufficiently stable, outputs mass, which is optimised
 
-    Normal_coeff = CNalphaN_super(N_fins, test_body.Arearef(), test_fins.area(), 5.41, angle_attack) #computes normal coeff at Max Q
-    Normal_coeff_alpha = C_N_force(Normal_coeff, angle_attack) #computes normal coeff with angle of attack
+    Normal_coeff = CNalphaN_super(N_fins, test_body.Arearef(), test_fins.area(), max_q_beta, angle_attack_force) #computes normal coeff at Max Q
+    Normal_coeff_alpha = C_N_force(Normal_coeff, (angle_attack_force* np.pi/180)) #computes normal coeff with angle of attack
     fin_force = F_fin_N(Normal_coeff_alpha, max_q_rho, test_body.Arearef(), max_q_velo) #computes peak fin force at max Q
 
     return output
 
 chord_limits = [0.01, 1.5] #sets chord length limits for optimizer
+span_limits = [0.01, 0.7] #sets chord length limits for optimizer
+
 #Computes the differential optimization
-bounds = [chord_limits, chord_limits, [0.01, 0.7]]
+bounds = [chord_limits, chord_limits, span_limits]
 result = differential_evolution(objective, bounds)
 print('Status : %s' % result['message'])
 print('Total Evaluations: %d' % result['nfev'])
@@ -72,7 +74,13 @@ print('Total Evaluations: %d' % result['nfev'])
 # evaluate solution
 solution = result['x']
 evaluation = objective(solution)
-print('Solution: f(%s) = %.5f' % (solution, evaluation))
 
-print(fin_thickness)
-print(fin_force)
+#prints the optimized values
+print('')
+print('Root Chord length /m: = {}'.format(solution[0]))
+print('Tip Chord length /m: = {}'.format(solution[1]))
+print('Fin Span /m: = {}'.format(solution[2]))
+print('Total mass /kg: = {}'.format(evaluation))
+print('')
+print('Fin thickness /mm: = {}'.format(fin_thickness*1000))
+print('Max Fin Force /kN: = {}'.format(fin_force/1000))
