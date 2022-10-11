@@ -1,104 +1,82 @@
+"""
+Stability Function - Calculates the stability of the vehicle
+"""
+#Import all the required functions and classes from the other modules
 import numpy as np
-from scipy.integrate import quad
+from aero_coefficients import MAC_length, chord_sq, MAC_x_distance, c_LE
+from Global_vars import *
+from aero_coefficients import Xf_supersonic, X_N, C_N_body, CNalphaN_subs, CNalphaN_super, Xf_transonic
+import Classes
 
-G_alu = 24E9
-P_atm = 1E5
+#Imports Body and nosecone objects from classes
+A_body = Classes.Bodyone
+vehicle_nosecone = Classes.Cone
 
-def CNalphaN_subs(n, s, A_ref, A_fin, Beta, gamma):
-  #This finds the normal force coefficient for a given fin
-  CNalphaN = (n/2) * (2 * np.pi) * (((s*0.01)**2) /A_ref)/(1 + np.sqrt(1 + ((Beta * (s*0.01)**2)/(A_fin * np.cos(gamma)))**2)) #From the open rocket documentation
-  return CNalphaN
+def Griffin_stability(Mach_number, vehicle_length, nosecone, vehicle_fins, vehicle_body, angle_attack, number_fins, COM):
+    """
+    Returns the stability of the vehicle given a specific Mach number, finset, body tube and nosecone. Allows user to
+    see how stability changes with Mach number.
 
-def CNalphaN_super(n, A_ref, A_fin, Beta, alpha):
-  #New method to find the normal force coefficient for the non-subsonic regime
-  M_value = np.sqrt(np.abs(1-(Beta)**2))
+    Parameters
+    ----------
+    Mach_number : float
+      mach number at which the stability of the vehicle is desired
+    vehicle_length : float
+      total vehicle length
+    ambient_pressure : float
+        external pressure at maximum Q, static
+    nosecone : Class
+        nosecone object for the vehicle
+    vehicle_fins : Class
+        Fin object for the vehicle
+    vehicle_body : Class
+        Body object for the vehicle
+    angle_attack : float
+        angle of attack of the vehicle at the test point
+    number_fins : float
+        number of fins on the vehicle
+    COM : float
+        centre of mass of the vehicle
+      
+    Returns
+    -------
+    stability_Cal : float
+      stability of the vehicle in calibres
+    """
+    
+    beta = np.sqrt(np.abs(1-(Mach_number)**2)) #Calculates the inverse Prandtl number
+    fin_pos_Panthera = vehicle_length - vehicle_fins.Chord_root #finds the top of the fins relative to the nosecone tip
 
-  #Finds the values for the three velocity dependent coefficients
-  K_1 = 2/Beta 
-  K_2 = (((2.4*M_value**4)-(4*Beta**2))/(4*Beta**4))
-  K_3 = (((2.4*M_value**8)-(11.88*M_value**6)+(24*M_value**4)+(8))/(6*Beta**7))
+    #Finds the fin centre of pressure & normal force coefficent based on Mach number
+    if Mach_number <= 0.8: 
+        #Totally subsonic Regime
+        CNangle_attack = CNalphaN_subs(number_fins, vehicle_fins.fin_span, vehicle_body.Arearef(), vehicle_fins.area(), beta, vehicle_fins.fin_gamma())
+        CP_x_fins = (vehicle_fins.X_f() + fin_pos_Panthera) # Finds the centre of pressure for finset relative to the top of the rocket
 
-  #Finds the values for the force coefficient using the above coefficients and angle of attack
-  CNalphaN = (n/2) * (A_fin/A_ref) * ((K_1) + (K_2 * alpha * np.pi/180) + (K_3 * (alpha * np.pi/180)**2)) 
-  return CNalphaN
+    elif Mach_number < 1.2:
+        #fin CP position shifts for subsonic -> transonic
+        CNangle_attack = CNalphaN_subs(number_fins, vehicle_fins.fin_span, vehicle_body.Arearef(), vehicle_fins.area(), beta, vehicle_fins.fin_gamma())
+        CP_x_fins = Xf_transonic(MAC_length(vehicle_fins, chord_sq), vehicle_fins.fin_span, vehicle_fins.area(), Mach_number) + fin_pos_Panthera + MAC_x_distance(vehicle_fins, c_LE)
+    
+    elif Mach_number <= 2:
+        #normal force coefficient changes to supersonic formula, CP position continues to move transonic -> supersonic
+        CNangle_attack = CNalphaN_super(number_fins, vehicle_body.Arearef(), vehicle_fins.area(), beta, angle_attack)
+        CP_x_fins = Xf_transonic(MAC_length(vehicle_fins, chord_sq), vehicle_fins.fin_span, vehicle_fins.area(), Mach_number) + fin_pos_Panthera + MAC_x_distance(vehicle_fins, c_LE)
 
-def CNalphaN_trans(n, s, A_ref, A_fin, Mach, gamma, alpha):
-  CNalphaNpoint8 = CNalphaN_subs(n, s, A_ref, A_fin, 0.6, gamma)
-  CNalphaNonetwo = CNalphaN_super(n, A_ref, A_fin, 0.663, alpha)
-  CNalphaN = CNalphaNpoint8 + ((CNalphaNonetwo-CNalphaNpoint8)*((Mach-0.8)/(0.4)))
-  return CNalphaN
+    else:
+        #Pure supersonic, CP position shifts under supersonic formula
+        CNangle_attack = CNalphaN_super(number_fins, vehicle_body.Arearef(), vehicle_fins.area(), beta, angle_attack)
+        CP_x_fins = (Xf_supersonic(MAC_length(vehicle_fins, chord_sq), vehicle_fins.fin_span, vehicle_fins.area(), beta) + fin_pos_Panthera + MAC_x_distance(vehicle_fins, c_LE))
 
+    CP_x_nosecone = nosecone.X_f() # Finds the centre of pressure for the nosecone relative to the nosecone tip
+    CP_x_body = X_N(nosecone.nose_height, (vehicle_body.body_height)) # Finds the centre of pressure for body relative to the nosecone tip
 
+    Normal_coeff_nosecone = nosecone.CombinedC #Normal force coefficent nosecone
+    Normal_coeff_fins = CNangle_attack * vehicle_fins.K() #Finds the normal force coefficent for a finset with interference
+    Normal_coeff_body = C_N_body(vehicle_body.areat(), vehicle_body.Arearef(), angle_attack) #Finds the normal force coefficent for the body
 
-def C_N(A_plan, A_ref, alpha, K=1.1):
-  #Normal force coefficient of the rocket body
-  C_N = K * A_plan/A_ref * (np.sin(np.pi*alpha/180))**2
-  return C_N
+    #Finds the overall centre of pressure of the vehicle
+    overall_COP = ((CP_x_nosecone * Normal_coeff_nosecone) + (CP_x_body * Normal_coeff_body)+ (CP_x_fins * Normal_coeff_fins))/(Normal_coeff_nosecone + Normal_coeff_body + Normal_coeff_fins)
 
-def X_N(nose, h):
-  #Finds centre of pressure for the cross sectional area
-  X_N = h/2 + nose #Adds half the height to the nosecone length
-  return X_N
-
-def X_sf(c, s, A_fin, beta):
-  #Method to find the new COP for the fins in the supersonic regime
-  A_r = 2*(s*0.01)**2 / A_fin #Calculates the fin aspect ratio
-  X_f = c * (((A_r * beta) - 0.67)/((2*A_r*beta) - 1)) #Finds the COP of the fin, as in OpenRocket
-  return X_f
-
-
-def X(bottom, planform, nose, alpha, CNalpha):
-  #Function to find the overall centre of pressure for the rocket
-  
-  X_1 = (bottom.X_f() + 224) # Finds the centre of pressure for finset relative to the top of the rocket
-  X_3 = X_N(planform.n_1, planform.h) # Finds the centre of pressure for body relative to the top of the rocket
-  X_4 = nose.X_f() # Finds the centre of pressure for the nosecone relative to the top of the rocket
-
-  C_1 = CNalpha * bottom.K() #Finds the normal force coefficent for a finset
-  C_3 = C_N(planform.areat(), planform.Arearef(), alpha) #Finds the normal force coefficent for the body
-  C_4 = nose.C[alpha] #Finds the normal force coefficent for the nosecone
-
-  #Finds the overall centre of pressure as a weighted mean of component COP and force coefficients, as from OpenRocket Documentation
-  X = ((X_1 * C_1) + (X_3 * C_3) + (X_4 * C_4))/(C_1 + C_3 + C_4)
-  return X
-
-def c_g(x, Fins):
-  #Equation for defining chord with fin height
-    c_sq = (Fins.C_r + ((Fins.C_t - Fins.C_r)*x)/Fins.s)**2
-    return c_sq
-
-def MAC(Fins, c_f):
-  #Integration to find MAC length
-  result, err = quad(c_f,0,Fins.s,args=(Fins,))
-  Mac = result/(Fins.area() * 10000)
-  return Mac
-
-def c_LE(x, Fins):
-  #Product of chord equation and LE equation
-    c_sq = (Fins.C_r + ((Fins.C_t - Fins.C_r)*x)/Fins.s)*((Fins.C_r - Fins.C_t)*x/Fins.s)
-    return c_sq
-
-def MAC_x(Fins, c_func):
-  #Integration to find MAC x position from edge
-  result, err = quad(c_func,0,Fins.s,args=(Fins,))
-  Mac = result/(Fins.area() * 10000)
-  return Mac
-
-def flutter(G, h, c_r, c_t, M, P):
-    s = 0.5*(c_r + c_t)*h
-    a = ((h**2)/s)
-    lam = c_t/c_r
-    t = (((M**2) * (P * (lam + 1)*(a**3))/(1.5*G*(a+2)))**(1/3))*c_r
-    return t
-
-def pressure_position_transonic(c, s, A_fin, Mach):
-  f_1 = X_sf(c, s, A_fin, 1.732)/c
-  dB = 1e-2
-  beta_1 = np.sqrt(np.abs((2+dB)**2 - 1))
-  beta_2 = np.sqrt(np.abs((2-dB)**2 - 1))
-  f_2 = (X_sf(c, s, A_fin, (beta_1))/c  - X_sf(c, s, A_fin, (beta_2))/c)/(2*dB)
-  a = np.array([[1/32, 1/16, 1/8, 1/4, 1/2, 1], [5/16, 1/2, 3/4, 1, 1, 0], [32, 16, 8, 4, 2, 1], [80, 32, 12, 4, 1, 0], [160, 48, 12, 2, 0, 0], [240, 48, 6, 0, 0, 0]])
-  b = np.array([0.25, 0, f_1, f_2,  0, 0])
-  x = np.linalg.solve(a, b)
-  value = ((x[0] * (Mach**5)) + (x[1] * (Mach**4)) + (x[2] * (Mach**3)) + (x[3] * (Mach**2)) + (x[4] * (Mach)) + (x[5]))*c
-  return value
+    stability_Cal = (overall_COP - COM)/vehicle_body.body_diameter #stability of the vehicle in calibres
+    return stability_Cal
