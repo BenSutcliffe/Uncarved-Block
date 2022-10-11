@@ -29,14 +29,16 @@ fineness = total_length/Body_dia
 
 
 """
-Material Properties - Geometry m
+Material Properties
 """
 G_alu = 24E9 #Shear Modulus Aluminium, Pa
 G_alu_psi = 3.7e6 #Shear Modulus Aluminium, Psi
+density_alu = 2710
 
 """
-Simlation variables - Physical, m
+Simlation variables - Physical
 """
 Roughness =3e-6 #body surface roughness - corresponding to a painted surface
-N = 4 #number of rocket fins
-angle_attack = 5 #angle of attack for simulation
+N_fins = 4 #number of rocket fins
+angle_attack = 0 #angle of attack for simulation
+speed_sound = 295 #speed of sound

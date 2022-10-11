@@ -106,7 +106,7 @@ class Fins:
         Returns
         -------
           Cp_x_distance : float
-            distance between the top of the fin and centre of pressure for subsonic
+            distance between the top of the fin and centre of pressure for subsonic regime
     """
     Cp_x_distance = ((self.sweep_length /3)*((self.Chord_root + (2*self.Chord_tip))/(self.Chord_root + self.Chord_tip))) + (1/6 * (((self.Chord_root)**2 + (self.Chord_tip)**2 + (self.Chord_root * self.Chord_tip))/(self.Chord_root + self.Chord_tip)))
     return Cp_x_distance
@@ -179,7 +179,7 @@ class Body:
         cross_section_area : float
           cross sectional body area
     """
-    cross_section_area = np.pi * (self.body_diameter **2)/4
+    cross_section_area = np.pi * (self.body_diameter**2)/4
     return cross_section_area
 
   def areat(self):
