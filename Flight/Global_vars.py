@@ -43,7 +43,7 @@ density_alu = 2710 #Density Aluminium, kg/m3
 Simlation variables - Physical
 """
 Roughness =3e-6 #body surface roughness - corresponding to a painted surface
-N_fins = 6 #number of rocket fins
+N_fins = 4 #number of rocket fins
 angle_attack = 0 #angle of attack for simulation of stability
 angle_attack_force = 5 #angle of attack for simulation of stability, cannot be equal to zero
-desired_stability = 0.05
+desired_stability = 0.09
