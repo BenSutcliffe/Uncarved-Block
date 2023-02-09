@@ -52,7 +52,7 @@ fin_drag2 = []
 with alive_bar(iterations) as bar:
   for i in range(0, iterations):
     bar()
-    if height[i] >= 0 and height[i]<150000 and time[i] < 40:
+    if height[i] >= 0 and height[i]<3000 and time[i] < 10:
 
       for j in range(0, len(altitudes)):
         if height[i] >= altitudes[j] and height[i] < altitudes[j+1]:
@@ -141,7 +141,6 @@ with alive_bar(iterations) as bar:
       velocity[i+1] = float(velocity[i]) + float(acceleration[i]) * dt
       height[i+1] = float(height[i]) + float(velocity[i+1]) * dt
       dynamic_pressure[i+1] = 0.5* density * (float(velocity[i]**2))
-      print(time[i], height[i], velocity[i], drag[i], mass[i])
 
 maxheight = np.sort(height)
 print("Maximum height: ", maxheight[-1])

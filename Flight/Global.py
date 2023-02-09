@@ -7,7 +7,7 @@ mainheight = 1000  # Change this to alter the main chute deploy height
 droguedeploytime = 10  # Change this to alter the drogue deploy time
 maindeploytime = 10  # Change this to alter the main chute deploy time
 cddown = 0.4
-start_mass = 632 #Aquila 29 kg
-end_mass = 208 #Aquila 18.7kg
+start_mass = 29 #Aquila 29 kg
+end_mass = 18.7 #Aquila 18.7kg
 
 angle_attack = 5
