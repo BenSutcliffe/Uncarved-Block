@@ -80,7 +80,7 @@ with alive_bar(iterations) as bar:
         Coefficient_of_drag = Coeff_friction_total + Coeff_body_pressure + ((Coeff_base_drag[0] + Coeff_base_drag[1]) * (4 * (Base_f.X_t*10**(-3)) * (Base_f.s*10**(-2)))/Body.Arearef())
         drag[i] = Coefficient_of_drag * ((velocity[i]) ** 2) * 0.5 * density * Body.Arearef()
 
-        fin_pos = (length_tot*10**(2)) - Base_f.C_r
+        fin_pos = (length_tot*10**(2)) - Base_f.C_r #Position of fin base leading edge
         
         if Machno < 0.5:
           CNalpha = CNalphaN_subs(N_f, Base_f.s, Body.Arearef(), Base_f.area(), beta, Base_f.angle_skew())

@@ -5,29 +5,31 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.widgets import Slider
 
+"""
+Key vehicle parameters
+"""
+Nosecone_length = 60 #Nosecone length /cm
+Body_dia = 13 #Body diameter /cm
+Body_len = 200 # Body length (without nosecone) /cm
+CoM = 189 #Centre of mass position (behind nosecone tip) /cm
+total_length = (Body_len+Nosecone_length)*10**(-2) #Total body length /m
 
-#Lengths in cm
-Nosecone_length = 60
-Body_dia = 13
-Body_len = 200
-CoM = 189 #for Aquila
+"""
+Key fin parameters
+"""
+Fin_basechord = 36 #Fin base chord length /cm
+Fin_length = 20 #Fin span /cm
+Fin_topchord = 16 #Fin tip chord length /cm
+Fin_thick = 9 #Fin thickness /mm
+Fin_Xt = 10 #Distance of span tip behind root tip /cm
+MAC_base = 27.282 #Length of Mean Aerodynamic chord /cm
 
-#For Panthera
-Panthera_dia = 60
-Transition_length = 5
-
-#Lengths in cm/mm
-Fin_basechord = 36
-Fin_length = 20
-Fin_topchord = 16
-Fin_thick = 9
-Fin_Xt = 10
-total_length = (Body_len+Nosecone_length)*10**(-2)
-MAC_base = 27.282
-
-Roughness =3e-6
-fineness = total_length/(Body_dia*10**(-3))
-N = 4
+"""
+Further geometry
+"""
+Roughness =3e-6 #Roughness representative length /m
+fineness = total_length/(Body_dia*10**(-2)) #Fineness ratio
+N = 4 #Number of fins
 
 class Fins:
   # Creates  a class fo fin objects which stores attributes
@@ -47,6 +49,7 @@ class Fins:
       return y
 
   def angle_skew(self):
+    #Calculates the gamma angle for the fins.
     if self.gamma == 0:
       angle = self.gamma
     else:
@@ -59,12 +62,12 @@ class Fins:
       return X_f
 
   def area(self):
-    #Finds the total fin area
+    #Finds the total wetted fin area
     Area = 0.5 * self.s * (self.C_r + self.C_t) * 0.0001
     return Area
   
   def K(self):
-    # Finds the aero
+    # Finds the interference value for the fins
     K = 1 + (0.5*self.body_radius)/(self.s + (0.5*self.body_radius))
     return K
   
@@ -72,21 +75,6 @@ class Fins:
     #Finds leading fin angle
     le_angle = np.arctan((self.C_r - self.C_t)/(2*self.s))
     return le_angle
-
-class Boattail:
-  #Initalises a class for the transition
-  def __init__(self, start_d, end_d, length):
-    self.start_r = start_d #Start dia
-    self.end_r = end_d #End Dia
-    self.length = length # Length
-
-  def CN_tr(self):
-    CN_alpha_t = 2*np.pi*(self.end_r**2 - self.start_r**2)/(np.pi*self.end_r**2)
-    return CN_alpha_t
-
-  def X_tr(self):
-    X_s = 0.5*self.length
-    return X_s
 
 
 class Body:
@@ -115,10 +103,9 @@ class Nosecone:
     
   def X_f(self):
     #Function to find the centre of pressure for a nosecone
-    X_f = 0.666 * self.L
+    X_f = 0.666 * self.L #Rule of thumb for nosecones (do not need to change this values)
     return X_f
 
 Base = Fins(Fin_basechord, Fin_length, Fin_topchord, Fin_Xt, Body_dia)
 Bodyone = Body(Body_dia, Body_len, Nosecone_length)
 Cone = Nosecone(Nosecone_length)
-Transition = Boattail(Body_dia, Panthera_dia, Transition_length)
