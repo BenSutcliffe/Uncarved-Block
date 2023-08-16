@@ -8,20 +8,20 @@ from matplotlib.widgets import Slider
 """
 Key vehicle parameters
 """
-Nosecone_length = 60 #Nosecone length /cm
-Body_dia = 13 #Body diameter /cm
-Body_len = 200 # Body length (without nosecone) /cm
-CoM = 189 #Centre of mass position (behind nosecone tip) /cm
+Nosecone_length = 177.5 #Nosecone length /cm
+Body_dia = 37.5 #Body diameter /cm
+Body_len = 786.5 # Body length (without nosecone) /cm
+CoM = 610 #Centre of mass position (behind nosecone tip) /cm
 total_length = (Body_len+Nosecone_length)*10**(-2) #Total body length /m
 
 """
 Key fin parameters
 """
-Fin_basechord = 36 #Fin base chord length /cm
-Fin_length = 20 #Fin span /cm
-Fin_topchord = 16 #Fin tip chord length /cm
-Fin_thick = 9 #Fin thickness /mm
-Fin_Xt = 10 #Distance of span tip behind root tip /cm
+Fin_basechord = 110 #Fin base chord length /cm
+Fin_length = 35 #Fin span /cm
+Fin_topchord = 70 #Fin tip chord length /cm
+Fin_thick = 12.5 #Fin thickness /mm
+Fin_Xt = 20 #Distance of span tip behind root tip /cm
 MAC_base = 27.282 #Length of Mean Aerodynamic chord /cm
 
 """

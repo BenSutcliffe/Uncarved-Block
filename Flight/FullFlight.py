@@ -23,12 +23,12 @@ iterations = 4000000  # Change this to alter how many timesteps are calculated (
 droguecount = 0  # Variables for deploying times
 maincount = 0
 
-ratio = 0.6609  # Change this to alter the mass ratio (Total dry mass/ Total wet mass)
+ratio = 0.3291  # Change this to alter the mass ratio (Total dry mass/ Total wet mass)
 densities = [1.225, 1.112, 1.007, 0.9093, 0.8194, 0.7364, 0.6601, 0.5900, 0.5258, 0.4671, 0.4135, 0.1948, 0.08891, 0.04008, 0.01841, 0.003996, 0.001027, 0.0003097, 0.00008283, 0.00001846, 0.00001846, 0.00001846, 0.00001846, 0.00001846, 0.00001846, 0.00001846, 0.00001846]  # Air density data
 altitudes = [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 15000, 20000, 25000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 120000, 130000, 140000, 150000]
 time = []
 
-burntime = 4.53
+burntime = 32.64 #unsure on this value - BEN
 for i in range(0, iterations + 100):
   time.append(dt * i)
 
@@ -52,7 +52,7 @@ fin_drag2 = []
 with alive_bar(iterations) as bar:
   for i in range(0, iterations):
     bar()
-    if height[i] >= 0 and height[i]<3000 and time[i] < 10:
+    if height[i] >= 0 and height[i]<3000 and time[i] < 170:
 
       for j in range(0, len(altitudes)):
         if height[i] >= altitudes[j] and height[i] < altitudes[j+1]:
